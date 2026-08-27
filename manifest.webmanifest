@@ -1,0 +1,18 @@
+{
+  "name": "DeskBots",
+  "short_name": "DeskBots",
+  "description": "Create specialist bots and run them from your iPhone.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
