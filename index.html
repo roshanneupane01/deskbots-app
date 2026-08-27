@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#000"/>
+<title>DeskBots</title>
+<link rel="manifest" href="./manifest.webmanifest"/>
+<link rel="apple-touch-icon" href="./icon.svg"/>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#000;color:#f5f5f7;font-family:-apple-system,system-ui,sans-serif}
+body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+button{font:inherit;color:inherit;background:none;border:0}
+input,textarea,select{font:inherit;color:inherit}
+.app{height:100%;display:flex;flex-direction:column;max-width:480px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid #2c2c2e}
+.top h1{font-size:17px;margin:0;display:flex;gap:8px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;background:#32d74b}
+.icon-btn{width:36px;height:36px;border-radius:18px;background:#161616}
+.tabs{display:flex;gap:6px;padding:10px 16px 0}
+.tab{flex:1;text-align:center;padding:8px;border-radius:10px;color:#8e8e93;font-weight:600}
+.tab.on{background:#161616;color:#fff}
+.list{flex:1;overflow:auto;padding:8px 12px 100px}
+.row{display:flex;gap:12px;align-items:center;padding:12px;border-radius:14px;background:#161616;margin-bottom:8px}
+.avatar{width:44px;height:44px;border-radius:22px;background:#2c2c2e;display:grid;place-items:center}
+.row .meta{flex:1;min-width:0}
+.row .meta span{display:block;font-size:13px;color:#8e8e93;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fab{position:fixed;right:16px;bottom:24px;height:52px;padding:0 18px;border-radius:26px;background:#0a84ff;color:#fff;font-weight:650}
+.screen{display:none;flex-direction:column;height:100%}
+.screen.on{display:flex}
+.chat-log{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.bubble{max-width:92%;padding:12px 14px;border-radius:18px;white-space:pre-wrap}
+.bot{align-self:flex-start;background:#1c1c1e}
+.me{align-self:flex-end;background:#0a84ff}
+.composer{display:flex;gap:8px;padding:8px 12px 16px;border-top:1px solid #2c2c2e}
+.composer input{flex:1;background:#161616;border:0;border-radius:20px;padding:12px 14px}
+.send{width:40px;height:40px;border-radius:20px;background:#0a84ff;color:#fff}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;z-index:20}
+.sheet.on{display:flex}
+.panel{width:100%;max-width:480px;margin:0 auto;background:#1c1c1e;border-radius:20px 20px 0 0;padding:16px 16px 28px}
+.field{width:100%;background:#000;border:1px solid #2c2c2e;border-radius:12px;padding:12px}
+textarea.field{min-height:90px}
+.primary{width:100%;margin-top:14px;background:#0a84ff;color:#fff;border-radius:12px;padding:14px;font-weight:650}
+.ghost{width:100%;margin-top:8px;color:#8e8e93;padding:10px}
+label{display:block;font-size:12px;color:#8e8e93;margin:10px 0 6px}
+.empty,.hint,.settings p{color:#8e8e93;font-size:14px}
+.empty{text-align:center;padding:48px 24px}
+</style></head><body>
+<div class="app">
+<section id="home" class="screen on">
+<header class="top"><button class="icon-btn" id="gear">i</button><h1><span class="dot"></span> DeskBots</h1><button class="icon-btn" id="plusHome">+</button></header>
+<div class="tabs"><button class="tab on" data-tab="bots">Bots</button><button class="tab" data-tab="groups">Groups</button></div>
+<div class="list" id="homeList"></div>
+<button class="fab" id="fab">+ New bot</button>
+</section>
+<section id="chat" class="screen">
+<header class="top"><button class="icon-btn" id="back">&lt;</button><h1 id="chatTitle">Bot</h1><button class="icon-btn" id="chatInfo">...</button></header>
+<div class="chat-log" id="log"></div>
+<form class="composer" id="composer"><input id="msg" placeholder="Message" autocomplete="off"/><button class="send" type="submit">^</button></form>
+</section>
+<section id="settings" class="screen">
+<header class="top"><button class="icon-btn" id="backSettings">&lt;</button><h1>Settings</h1><span style="width:36px"></span></header>
+<div class="settings"><p style="padding:0 16px">OpenRouter cloud. Not official Grok Bot.</p>
+<div style="padding:16px"><label>API key</label><input class="field" id="apiKey" type="password" placeholder="sk-or-v1-..."/>
+<label>Model</label><select class="field" id="model"><option value="x-ai/grok-4-fast">x-ai/grok-4-fast</option><option value="openai/gpt-4o-mini">openai/gpt-4o-mini</option></select>
+<button class="primary" id="saveKey">Save cloud</button>
+<p class="hint">Get a key at openrouter.ai/keys</p></div></div>
+</section></div>
+<div class="sheet" id="sheet"><div class="panel">
+<h2 id="sheetTitle">New bot</h2>
+<label>Name</label><input class="field" id="botName"/>
+<label>Job</label><textarea class="field" id="botDesc"></textarea>
+<label id="kindLabel" style="display:none">Members</label><div id="memberPick" style="display:none"></div>
+<button class="primary" id="saveBot">Create</button>
+<button class="ghost" id="cancelSheet">Cancel</button>
+</div></div>
+<script>
+const storeKey="deskbots.v2";
+const state=load();
+function uid(){return Math.random().toString(36).slice(2,10)}
+function load(){try{const raw=localStorage.getItem(storeKey);if(!raw)return seed();return Object.assign(seed(),JSON.parse(raw))}catch(e){return seed()}}
+function save(){localStorage.setItem(storeKey,JSON.stringify(state))}
+function seed(){return{bots:[{id:uid(),kind:"bot",name:"Chief of Staff",emoji:"*",desc:"Create bots and groups. Never publish without approval.",messages:[{role:"bot",text:"Ready. Add an OpenRouter key. Then say: build the team."}]}],groups:[],apiKey:"",model:"x-ai/grok-4-fast",tab:"bots",active:null}}
+const $=id=>document.getElementById(id);
+let sheetMode="bot";
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));$(id).classList.add("on")}
+function esc(s){return String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+function renderHome(){const items=state.tab==="groups"?state.groups:state.bots;$("fab").textContent=state.tab==="groups"?"+ New group":"+ New bot";if(!items.length){$("homeList").innerHTML='<div class="empty">Nothing here yet.</div>';return}$("homeList").innerHTML=items.map(b=>{const last=(b.messages||[]).slice(-1)[0];return '<button class="row" data-open="'+b.kind+':'+b.id+'"><div class="avatar">'+(b.emoji||"*")+'</div><div class="meta"><b>'+esc(b.name)+'</b><span>'+esc(last?last.text:b.desc||"")+'</span></div></button>'}).join("")}
+function openChat(kind,id){const item=(kind==="group"?state.groups:state.bots).find(x=>x.id===id);if(!item)return;state.active={kind,id};$("chatTitle").textContent=item.name;renderLog(item);show("chat")}
+function renderLog(item){$("log").innerHTML=(item.messages||[]).map(m=>'<div class="bubble '+(m.role==="me"?"me":"bot")+'">'+esc(m.text)+'</div>').join("");$("log").scrollTop=$("log").scrollHeight}
+function currentItem(){if(!state.active)return null;return (state.active.kind==="group"?state.groups:state.bots).find(x=>x.id===state.active.id)}
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{state.tab=t.dataset.tab;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x===t));renderHome()});
+$("homeList").onclick=e=>{const row=e.target.closest("[data-open]");if(!row)return;const p=row.dataset.open.split(":");openChat(p[0],p[1])};
+$("back").onclick=()=>{save();show("home");renderHome()};
+$("gear").onclick=()=>{$("apiKey").value=state.apiKey||"";$("model").value=state.model||"x-ai/grok-4-fast";show("settings")};
+$("backSettings").onclick=()=>show("home");
+$("saveKey").onclick=()=>{state.apiKey=$("apiKey").value.trim();state.model=$("model").value;save();show("home")};
+function openSheet(mode){sheetMode=mode;$("sheetTitle").textContent=mode==="group"?"New group":"New bot";$("botName").value="";$("botDesc").value="";$("kindLabel").style.display=mode==="group"?"block":"none";$("memberPick").style.display=mode==="group"?"block":"none";if(mode==="group")$("memberPick").innerHTML=state.bots.map(b=>'<label style="display:flex;gap:8px;color:#fff;margin:6px 0"><input type="checkbox" value="'+b.id+'"/> '+esc(b.name)+'</label>').join("");$("sheet").classList.add("on")}
+$("fab").onclick=()=>openSheet(state.tab==="groups"?"group":"bot");
+$("plusHome").onclick=()=>openSheet(state.tab==="groups"?"group":"bot");
+$("cancelSheet").onclick=()=>$("sheet").classList.remove("on");
+$("saveBot").onclick=()=>{const name=$("botName").value.trim();const desc=$("botDesc").value.trim();if(!name)return;if(sheetMode==="bot")state.bots.unshift({id:uid(),kind:"bot",name,emoji:"*",desc,messages:[{role:"bot",text:"I am "+name}]});else{const ids=[...$("memberPick").querySelectorAll("input:checked")].map(i=>i.value);state.groups.unshift({id:uid(),kind:"group",name,emoji:"G",desc,members:ids,messages:[{role:"bot",text:"Group ready"}]);state.tab="groups"}save();$("sheet").classList.remove("on");renderHome()};
+$("composer").onsubmit=async e=>{e.preventDefault();const item=currentItem();const text=$("msg").value.trim();if(!item||!text)return;item.messages.push({role:"me",text});$("msg").value="";renderLog(item);save();item.messages.push({role:"bot",text:await replyFor(item,text)});save();renderLog(item)};
+function applyActions(text,current){const notes=[];const re=/\[\[(CREATE_BOT|CREATE_GROUP)\|([^\]|]+)\|([^\]]+)\]\]/g;let m;while((m=re.exec(text))){const kind=m[1],a=m[2].trim(),b=m[3].trim();if(kind==="CREATE_BOT"){if(!state.bots.some(x=>x.name.toLowerCase()===a.toLowerCase())){const bot={id:uid(),kind:"bot",name:a,emoji:"*",desc:b,messages:[{role:"bot",text:a+" online"}]};state.bots.unshift(bot);notes.push("Created bot: "+a)}}else{const names=b.split(",").map(s=>s.trim());const members=state.bots.filter(x=>names.some(n=>n.toLowerCase()===x.name.toLowerCase())).map(x=>x.id);state.groups.unshift({id:uid(),kind:"group",name:a,emoji:"G",members,messages:[{role:"bot",text:"Group "+a+" ready"}]);notes.push("Created group: "+a)}}save();const cleaned=text.replace(/\s*\[\[(CREATE_BOT|CREATE_GROUP)\|[^\]]+\]\]/g,"").trim();return notes.length?cleaned+"\n\n-- system --\n"+notes.join("\n"):cleaned}
+async function replyFor(item,text){if(state.apiKey){try{return applyActions(await callCloud(item),item)}catch(err){return "API error: "+err.message}}return applyActions(localBrain(item,text),item)}
+async function callCloud(item){const members=item.kind==="group"?state.bots.filter(b=>(item.members||[]).includes(b.id)):[item];const system=members.map(b=>"### "+b.name+"\n"+b.desc).join("\n\n")+"\nCreate bots with [[CREATE_BOT|Name|Job]] and groups with [[CREATE_GROUP|Name|A, B]] at the END.";const history=(item.messages||[]).slice(-12).map(m=>({role:m.role==="me"?"user":"assistant",content:m.text}));const res=await fetch("https://openrouter.ai/api/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+state.apiKey,"HTTP-Referer":"https://roshanneupane01.github.io/deskbots-app/","X-Title":"DeskBots"},body:JSON.stringify({model:state.model||"x-ai/grok-4-fast",messages:[{role:"system",content:system},...history]})});if(!res.ok)throw new Error(await res.text());const data=await res.json();return (data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||"(empty)"}
+function localBrain(item,text){if(/build the team|hire|spawn|assemble/.test(text.toLowerCase()))return "Assembling the team.\n[[CREATE_BOT|Researcher|Find demand and gaps.]]\n[[CREATE_BOT|Writer|Scripts and titles.]]\n[[CREATE_BOT|Editor|Cut Shorts.]]\n[[CREATE_GROUP|YT Machine|Chief of Staff, Researcher, Writer, Editor]]";return item.name+" here. Say build the team. Add an OpenRouter key for live models."}
+$("chatInfo").onclick=()=>{const i=currentItem();if(i)alert(i.name+"\n"+(i.desc||""))};
+renderHome();
+</script></body></html>
